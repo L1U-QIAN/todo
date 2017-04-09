@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>TodoTest</title>
+
+	</head>
+	<body>
+
+		<div id='id-div-todo-container'></div>
+		<script>
+            // 实现一个用 ajax 和后端交互数据的 todo
+
+
+			/*
+			 1，往页面中添加输入框和提交按钮
+			 绑定提交按钮事件
+			 点击提交按钮会发送创建 todo 的 ajax
+			 获取 input 的值
+			 组成 json 格式字符串并发送 ajax
+			 ajax 成功后会在页面中添加被创建的 todo
+			 2，载入所有 todos
+			 3，显示所有 todos
+			 4，每个 todo 要显示删除按钮
+			 5，删除按钮可以删掉这个 todo
+			 绑定删除按钮的事件
+			 写出删除函数，需要 todo_id
+			 在事件中调用删除函数，需要得到 todo_id 并传给删除函数
+			 6，每个 todo 要显示编辑按钮
+			 显示编辑按钮
+			 给编辑按钮绑定事件
+
+			 8，添加 css
+
+			 7，编辑后，更新todo
+			 */
+
+            var log = function() {
+                console.log.apply(console, arguments)
+            }
+
+            var e = function(selector) {
+                return document.querySelector(selector)
+            }
+
+            var appendHtml = function(element, html) {
+                element.insertAdjacentHTML('beforeend', html)
+            }
+
+			var ajax = function(method, path, data, reseponseCallback) {
+			    var r = new XMLHttpRequest()
+			    // 设置请求方法和请求地址
+			    r.open(method, path, true)
+			    // 设置发送的数据的格式
+			    r.setRequestHeader('Content-Type', 'application/json')
+			    // 注册响应函数
+			    r.onreadystatechange = function() {
+			        if(r.readyState === 4) {
+			            reseponseCallback(r.response)
+						// reseponseCallback(r)
+			        }
+			    }
+			    // 发送请求
+			    r.send(data)
+			}
+
+            // 1，往页面中添加输入框和提交按钮
+            var init = function() {
+                var t = `
+        <input id=id-input-task>
+        <button id=id-button-add>add todo</button>
+    `
+                appendHtml(e('#id-div-todo-container'), t)
+            }
+
+
+			// var todos = JSON.parse(r.response)
+            // 1.1 绑定添加按钮的事件
+            var bindEventAdd = function(){
+                var container = e('#id-div-todo-container')
+                container.addEventListener('click', function(event){
+                    var self = event.target
+                    // add button
+                    if (self.id == 'id-button-add') {
+                        log('add button')
+                        // 取到用户输入的值
+                        var task = e('#id-input-task').value
+                        log('input', task)
+						apiTodoAdd(task, function(response) {
+							console.log('api todo add', response)
+						})
+                    }
+                })
+            }
+
+            var apiTodoAll = function(callback) {
+                // var baseUrl = 'http://localhost:8081/'
+                var method = 'GET'
+                var path = '/todo/all'
+				var data = ''
+                // var url = baseUrl + path
+				// ajax(method, path, data, function(r){
+			    //     var todos = JSON.parse(r.response)
+				// 	// var todos = JSON.parse(r)
+			    //     callback(todos)
+			    // })
+				ajax(method, path, data, callback)
+			}
+
+
+
+            var apiTodoAdd = function(task, callback) {
+                // 发送 ajax 来创建 todo
+                // var url = 'http://localhost:8081/todo/add'
+				var method = 'POST'
+				var path = '/todo/add'
+                var data = {
+                    'task': task,
+                }
+                data = JSON.stringify(data)
+                // ajax(method, path, data, function(r){
+                //     var t = JSON.parse(r.response)
+                //     console.log(t)
+                //     callback(t)
+                // })
+				ajax(method, path, data, callback)
+            }
+
+
+
+            var apiTodoDelete = function(todo_id, callback) {
+                // var baseUrl = 'http://localhost:8081'
+                var method = 'GET'
+                var path = '/todo/delete/:' + todo_id
+				var data = ''
+                // var url = baseUrl + path
+                // 发送 ajax 请求来删除 todo
+                // ajax(method, path, data, function(r){
+                //     var t = JSON.parse(r.response)
+                //     callback(t)
+                // })
+				ajax(method, path, data, callback)
+            }
+			//
+			// apiTodoDelete(function(response) {
+			// 	console.log('api todo delete', response)
+			// })
+
+            var apiTodoUpdate = function(todo_id, task, callback) {
+                // 发送 ajax
+                // var url = 'http://localhost:8081/todo/update/:' + todo_id
+				var method = 'POST'
+				var path = '/todo/update/:' + todo_id
+                var data = {
+					// 调整成编辑的文本
+					'id': id,
+                    'task': task,
+                }
+                data = JSON.stringify(data)
+                // ajax(method, path, data, function(r){
+                //     var t = JSON.parse(r.response)
+                //     console.log('更新成功', t)
+                //     callback(t)
+                // })
+				ajax(method, path, data, callback)
+            }
+			//
+			// apiTodoUpdate(function(response) {
+			// 	console.log('api todo update', response)
+			// })
+
+            // todo 的 html
+            var templateTodo = function(todo) {
+				/*
+				 {
+				 "created_time": 1478096811,
+				 "id": 698,
+				 "task": "study"
+				 }
+				 */
+                var task = todo.task
+                var id = todo.id
+                var t = `
+        <div class=todo-cell>
+            <button class=todo-delete data-id=${id}>删除</button>
+            <button class=todo-edit data-id=${id}>编辑</button>
+            <span class=todo-task data-id=${id}>${task}</span>
+        </div>
+    `
+                return t
+            }
+
+            var insertTodo = function(todo) {
+                var container = e('#id-div-todo-container')
+                var todoCell = templateTodo(todo)
+                appendHtml(container, todoCell)
+            }
+
+            // 2，载入所有 todos
+            var loadTodos = function() {
+				apiTodoAll(function(response) {
+					insertTodos(response)
+					console.log('api todo all', response)
+				})
+            }
+
+            // 3，显示所有 todos
+            var insertTodos = function(todos) {
+                var container = e('#id-div-todo-container')
+                for (var i = 0; i < todos.length; i++) {
+                    var todo = todos[i]
+                    var t = templateTodo(todo)
+                    appendHtml(container, t)
+                }
+            }
+
+            // 8，添加 css
+            var addCss = function() {
+                var style = `
+        <style>
+            div {
+                outline: red 1px dashed;
+            }
+        </style>
+    `
+                var head = e('head')
+                appendHtml(head, style)
+            }
+
+            // 5.1 删除按钮的事件
+            var bindEventDelete = function(){
+                var container = e('#id-div-todo-container')
+                container.addEventListener('click', function(event){
+                    var self = event.target
+                    if (self.classList.contains('todo-delete')) {
+                        var todo_id = self.dataset.id
+                        log('删除按钮 click', todo_id)
+                        apiTodoDelete(todo_id, function(response) {
+                            // log('被删除的 todo', todo)
+                            // 删除成功后, 在页面中 删除这个 cell
+                            
+                            var todoCell = self.parentElement
+                            todoCell.remove()
+                        })
+                    }
+                })
+            }
+
+            // 6.2 编辑按钮的事件
+            var bindEventEdit = function(){
+                var container = e('#id-div-todo-container')
+                container.addEventListener('click', function(event){
+                    var self = event.target
+                    if (self.classList.contains('todo-edit')) {
+                        var todo_id = self.dataset.id
+                        log('edit 按钮 click', todo_id)
+                        // 找到 todo-task 并设置 contentEditable = true
+                        var cell = self.parentElement
+                        var span = cell.querySelector('.todo-task')
+                        log('span eiditable', span)
+                        span.contentEditable = true
+                    }
+                })
+            }
+
+            var bindEventEditInput = function(){
+                var container = e('#id-div-todo-container')
+                // keydown 是按键被按下的状态
+                container.addEventListener('keydown', function(event){
+                    var self = event.target
+                    // log('input', self, event)
+                    if (self.classList.contains('todo-task')) {
+                        log('todo task input', event)
+                        // 判断按键是否是回车
+                        if (event.key == 'Enter') {
+                            // 按的是回车, 发送 update ajax 来更新 todo
+                            log('enter ')
+                            self.contentEditable = false
+                            // 取消默认事件的响应
+                            // event.preventDefault()
+                            var todo_id = self.dataset.id
+                            apiTodoUpdate(todo_id, self.innerHTML, function(response){
+                                log('更新成功 回调')
+                            })
+                        }
+                    }
+                })
+            }
+
+            var bindEvents = function() {
+                bindEventDelete()
+                bindEventEdit()
+                bindEventEditInput()
+                // 给提交按钮绑定事件
+                // bindEventSubmit()
+                // 绑定增加 todo 的事件
+                bindEventAdd()
+            }
+
+            var __main = function() {
+                init()
+                loadTodos()
+                addCss()
+                bindEvents()
+            }
+
+            __main()
+
+		</script>
+	</body>
+</html>
