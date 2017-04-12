@@ -65,10 +65,14 @@ console.log(t)
 
 */
 
+/*express用来做服务器开发，通过这个js也可以实现像python等可以做服务器开发
+可以通过它用node.js写服务器开发
+express提供开发的基本框架*/
+
 // 引入 express 并且创建一个 express 实例赋值给 app
 var express = require('express')
 var bodyParse = require('body-parser')
-
+// 创建app变量直接调用函数
 var app = express()
 
 var todoList = [
@@ -96,6 +100,7 @@ var sendHtml = function(path, response) {
 // 用 get 定义一个给用户访问的网址
 // request 是浏览器发送的请求
 // response 是我们要发给浏览器的响应
+// '/'是要访问网站的路由
 app.get('/', function(request, response) {
     // var r = `
     // `
@@ -146,9 +151,6 @@ var todoUpdate = function(todo) {
             return t
         }
     }
-    // 实际上到了这里就表明程序并没有找到对应 id 的数据
-    // 理论上应该返回一个错误 让前端知道错了
-    // 但是现在我们不管了
     return todo
 }
 
@@ -227,10 +229,10 @@ app.get('/todo/delete/:id', function(request, response) {
     sendJSON(response, t)
 })
 
-// listen 函数的第一个参数是我们要监听的端口
+// listen 函数的第一个参数是要监听的端口
 // 这个端口是要浏览器输入的
 // 默认的端口是 80
-// 所以如果你监听 80 端口的话，浏览器就不需要输入端口了
+// 所以如果监听 80 端口的话，浏览器就不需要输入端口了
 // 但是 1024 以下的端口是系统保留端口，需要管理员权限才能使用
 var server = app.listen(8081, function () {
   var host = server.address().address
